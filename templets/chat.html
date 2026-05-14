@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐾 小白狐</title>
+  <style>
+    /* ========== 全局可爱风格 ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #ffe6f0 0%, #ffd9e8 100%);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      padding: 16px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 500px;
+      height: 80vh;
+      background: #fff9fc;
+      border-radius: 32px;
+      box-shadow: 0 12px 40px rgba(255, 138, 160, 0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 2px solid #ffb6c1;
+    }
+
+    /* 头部装饰 */
+    .chat-header {
+      background: #ffb6c1;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #ff8da1;
+    }
+
+    .cat-avatar {
+      font-size: 32px;
+      background: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(255, 105, 135, 0.3);
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* 消息区域 */
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #ffc0cb;
+      border-radius: 10px;
+    }
+
+    /* 消息气泡 */
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+      animation: fadeInUp 0.3s ease;
+    }
+
+    .message.user {
+      align-self: flex-end;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+    }
+
+    .bubble {
+      padding: 10px 16px;
+      border-radius: 20px;
+      line-height: 1.5;
+      word-break: break-word;
+      position: relative;
+    }
+
+    .message.user .bubble {
+      background: #ffb6c1;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .bubble {
+      background: #ffe4ec;
+      color: #5c3b4a;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message .sender {
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: #c97d8b;
+      font-weight: 600;
+    }
+
+    .message.user .sender {
+      text-align: right;
+    }
+
+    /* 正在输入动画 */
+    .typing-indicator {
+      align-self: flex-start;
+      background: #ffe4ec;
+      padding: 12px 16px;
+      border-radius: 20px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      color: #d48c9b;
+      font-size: 14px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #ff8da1;
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    .typing-dot:nth-child(3) { }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 底部输入区域 */
+    .chat-footer {
+      padding: 12px 16px;
+      background: white;
+      border-top: 2px solid #ffd0d9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-footer input {
+      flex: 1;
+      padding: 12px 18px;
+      border: 2px solid #ffc0cb;
+      border-radius: 30px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+      background: #fff5f8;
+      color: #5c3b4a;
+    }
+
+    .chat-footer input:focus {
+      border-color: #ff8da1;
+      background: white;
+    }
+
+    .send-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #ff8da1;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(255, 105, 135, 0.4);
+    }
+
+    .send-btn:hover {
+      background: #ff6b85;
+      transform: scale(1.05);
+    }
+
+    .send-btn:active {
+      transform: scale(0.95);
+    }
+
+    .send-btn:disabled {
+      background: #e0b0b8;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .voice-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #ffb6c1;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(255, 105, 135, 0.4);
+    }
+    .voice-btn:hover {
+      background: #ff8da1;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <!-- 可爱头部 -->
+    <div class="chat-header">
+      <div class="cat-avatar">🦊</div>
+      <span class="header-title">情感助手-白狐尽欢</span>
+    </div>
+
+    <!-- 消息展示区 -->
+    <div id="messageList" class="chat-messages">
+      <!-- 欢迎消息 -->
+      <div class="message assistant">
+        <span class="sender">尽欢</span>
+        <div class="bubble">(｡･∀･)ﾉﾞ嗨～你好呀！我是你的专属情感助手，有什么想聊的吗？🐾</div>
+      </div>
+    </div>
+
+    <!-- 发送栏 -->
+    <div class="chat-footer">
+      <input 
+        type="text" 
+        id="messageInput" 
+        placeholder="输入你的消息..." 
+        autocomplete="off"
+      />
+      <button id="voiceBtn" class="voice-btn" title="说话">🎤</button>
+      <button id="sendBtn" class="send-btn">➤</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // ========== 模块化聊天控制器 ==========
+
+    // 配置
+    const API_ENDPOINT = "http://localhost:8000/chat-stream";
+    const VOICE_API_ENDPOINT = "http://localhost:8000/chat-voice";
+
+    /**
+     * UI 操作模块
+     */
+    class ChatUI {
+      constructor() {
+        this.messageList = document.getElementById("messageList");
+        this.input = document.getElementById("messageInput");
+        this.sendBtn = document.getElementById("sendBtn");
+        this.typingIndicator = null;
+      }
+
+      addMessage(role, text) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `message ${role}`;
+        const senderSpan = document.createElement("span");
+        senderSpan.className = "sender";
+        senderSpan.textContent = role === "user" ? "你" : "狐娘";
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
+        msgDiv.appendChild(senderSpan);
+        msgDiv.appendChild(bubble);
+        this.messageList.appendChild(msgDiv);
+        this.scrollToBottom();
+        return bubble;
+      }
+
+      showTyping() {
+        this.typingIndicator = document.createElement("div");
+        this.typingIndicator.className = "typing-indicator";
+        this.typingIndicator.innerHTML = `
+          <span>白狐正在思考</span>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        `;
+        this.messageList.appendChild(this.typingIndicator);
+        this.scrollToBottom();
+      }
+
+      hideTyping() {
+        if (this.typingIndicator) {
+          this.typingIndicator.remove();
+          this.typingIndicator = null;
+        }
+      }
+
+      scrollToBottom() {
+        this.messageList.scrollTop = this.messageList.scrollHeight;
+      }
+
+      clearInput() {
+        this.input.value = "";
+        this.input.focus();
+      }
+
+      setSending(isSending) {
+        this.input.disabled = isSending;
+        this.sendBtn.disabled = isSending;
+        if (!isSending) this.input.focus();
+      }
+
+      /** 播放音频 blob */
+      playAudio(audioBlob) {
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play().catch(e => console.warn("自动播放被阻止，请点击页面任意位置后再试", e));
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+      }
+    }
+
+    /**
+     * 通信模块
+     */
+    class ChatAPI {
+      static async streamMessage(message, { onChunk, onDone, onError }) {
+        try {
+          const response = await fetch(API_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message })
+          });
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`请求失败 (${response.status}): ${errText}`);
+          }
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const chars = [...buffer];
+            buffer = "";
+            for (const ch of chars) {
+              onChunk(ch);
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+          }
+          if (buffer.length > 0) {
+            for (const ch of buffer) {
+              onChunk(ch);
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+          }
+          onDone();
+        } catch (error) {
+          onError(error.message);
+        }
+      }
+
+      static async voiceChat(message, { onStart, onAudio, onError }) {
+        try {
+          onStart();
+          const response = await fetch(VOICE_API_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message })
+          });
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`请求失败 (${response.status}): ${errText}`);
+          }
+          const audioBlob = await response.blob();
+          onAudio(audioBlob);
+        } catch (error) {
+          onError(error.message);
+        }
+      }
+    }
+
+    /**
+     * 主控制器
+     */
+    class ChatApp {
+      constructor(ui, api) {
+        this.ui = ui;
+        this.api = api;
+        this.isSending = false;
+        this.recognition = null;
+        this.initSpeechRecognition();
+
+        const voiceBtn = document.getElementById("voiceBtn");
+
+        // 文本发送
+        this.ui.sendBtn.addEventListener("click", () => this.handleSend());
+        this.ui.input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter" && !this.isSending) {
+            this.handleSend();
+          }
+        });
+
+        // 语音按钮
+        if (voiceBtn) {
+          voiceBtn.addEventListener("click", () => this.handleVoiceDirect());
+        }
+      }
+
+      /** 主动请求并检查麦克风权限 */
+      async ensureMicPermission() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // 立即关闭轨道，只为了得到权限
+          stream.getTracks().forEach(track => track.stop());
+          return true;
+        } catch (err) {
+          console.error("麦克风权限获取失败：", err.name, err.message);
+          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            alert("麦克风权限被拒绝，请点击地址栏左侧的锁图标，将麦克风权限设为“允许”，然后刷新页面。");
+          } else {
+            alert("无法访问麦克风：" + err.message);
+          }
+          return false;
+        }
+      }
+
+      initSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          console.warn("当前浏览器不支持语音识别");
+          return;
+        }
+        this.recognition = new SpeechRecognition();
+        this.recognition.lang = 'zh-CN';
+        this.recognition.interimResults = false;
+        this.recognition.maxAlternatives = 1;
+
+        this.recognition.onerror = (event) => {
+          console.error("语音识别错误：", event.error, event.message);
+          this.ui.addMessage("assistant", `嗷呜…听不清呢 (${event.error})，再试试吧~`);
+        };
+        this.recognition.onend = () => {
+          const btn = document.getElementById("voiceBtn");
+          if (btn) btn.textContent = "🎤";
+        };
+      }
+
+      async handleVoiceDirect() {
+        if (this.isSending) return;
+        if (!this.recognition) {
+          alert("当前浏览器不支持语音识别，请使用 Chrome 或 Edge 哦~");
+          return;
+        }
+
+        // 1. 先确保麦克风权限
+        const hasPermission = await this.ensureMicPermission();
+        if (!hasPermission) return;
+
+        // 2. 启动识别
+        try {
+          this.recognition.start();
+          const btn = document.getElementById("voiceBtn");
+          if (btn) btn.textContent = "🔴";
+        } catch (e) {
+          console.error("语音启动失败：", e);
+          return;
+        }
+
+        // 3. 临时修改 onresult
+        const originalOnResult = this.recognition.onresult;
+        this.recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript.trim();
+          if (!transcript) return;
+
+          this.ui.addMessage("user", transcript);
+          this.ui.setSending(true);
+          this.ui.showTyping();
+
+          ChatAPI.voiceChat(transcript, {
+            onStart: () => {},
+            onAudio: (audioBlob) => {
+              this.ui.hideTyping();
+              this.ui.addMessage("assistant", "🔊 狐娘正在说话...");
+              this.ui.playAudio(audioBlob);
+              this.ui.setSending(false);
+            },
+            onError: (errMsg) => {
+              this.ui.hideTyping();
+              this.ui.setSending(false);
+              this.ui.addMessage("assistant", `嗷呜…出错了：${errMsg}`);
+            }
+          });
+
+          // 恢复原有 onresult
+          this.recognition.onresult = originalOnResult;
+        };
+      }
+
+      async handleSend() {
+        const message = this.ui.input.value.trim();
+        if (!message || this.isSending) return;
+
+        this.ui.addMessage("user", message);
+        this.ui.clearInput();
+        this.isSending = true;
+        this.ui.setSending(true);
+        this.ui.showTyping();
+
+        let assistantBubble = null;
+        let fullText = "";
+
+        await ChatAPI.streamMessage(message, {
+          onChunk: (chunk) => {
+            if (!assistantBubble) {
+              this.ui.hideTyping();
+              assistantBubble = this.ui.addMessage("assistant", "");
+            }
+            fullText += chunk;
+            assistantBubble.textContent = fullText;
+            this.ui.scrollToBottom();
+          },
+          onDone: () => {
+            this.ui.hideTyping();
+            this.isSending = false;
+            this.ui.setSending(false);
+            if (!assistantBubble) {
+              this.ui.addMessage("assistant", "（狐娘没有回答…可能是网络问题哦）");
+            }
+          },
+          onError: (errMsg) => {
+            this.ui.hideTyping();
+            this.isSending = false;
+            this.ui.setSending(false);
+            this.ui.addMessage("assistant", `嗷呜…出错了：${errMsg}`);
+          }
+        });
+      }
+    }
+
+    // 启动应用
+    const ui = new ChatUI();
+    const app = new ChatApp(ui, ChatAPI);
+    ui.input.focus();
+  </script>
+</body>
+</html>

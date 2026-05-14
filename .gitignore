@@ -1,0 +1,32 @@
+
+# 虚拟环境文件夹，绝不上传
+venv/
+env/
+.venv/
+
+# Python 缓存文件
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE 和系统文件
+.vscode/
+.DS_Store
+Thumbs.db
+
+#测试文件
+AI_test/
+
+# 虚拟环境
+venv/
+.env/
+env/
+.venv/
+
+# 环境变量文件（含 API 密钥等敏感信息）
+.env
+*.env
+
+# 日志、数据库等
+*.log
+*.sqlite3
