@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐾 小白狐</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="cat-avatar">🦊</div>
+      <span class="header-title">情感助手-白狐尽欢</span>
+    </div>
+
+    <div id="messageList" class="chat-messages">
+      <div class="message assistant">
+        <span class="sender">尽欢</span>
+        <div class="bubble">(｡･∀･)ﾉﾞ嗨～你好呀！我是你的专属情感助手，有什么想聊的吗？🐾</div>
+      </div>
+    </div>
+
+    <div class="chat-footer">
+      <input 
+        type="text" 
+        id="messageInput" 
+        placeholder="输入你的消息..." 
+        autocomplete="off"
+      />
+      <button id="voiceBtn" class="voice-btn" title="说话">🎤</button>
+      <button id="sendBtn" class="send-btn">➤</button>
+    </div>
+  </div>
+
+  <script type="module" src="/static/js/chat-app.js"></script>
+</body>
+</html>
